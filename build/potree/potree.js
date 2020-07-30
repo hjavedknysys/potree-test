@@ -29099,6 +29099,10 @@ ENDSEC
 			if(this.stats){
 				this.stats.end();
 			}
+
+			if (typeof viewer.umbra !== 'undefined' && typeof viewer.umbra.Umbra.update === "function"){
+				viewer.umbra.Umbra.update();
+			}
 		}
 
 		postError(content, params = {}){
