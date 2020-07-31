@@ -112,7 +112,7 @@
 		viewer.scene.scene.add(sphere);
 
 		// Sigeom
-		Potree.loadPointCloud("http://5.9.65.151/mschuetz/potree/resources/pointclouds/archpro/heidentor/cloud.js", "Heidentor", function(e){
+		Potree.loadPointCloud("https://s3-us-west-1.amazonaws.com/3dun-california-conversion/ehsancompany-1535628672-conversions-dev/Archway2.las_6d609fda-ed0c-45b2-ab1e-bf2768bcb9cb/cloud.js", "Heidentor", function(e){
 			viewer.scene.addPointCloud(e.pointcloud);
 			e.pointcloud.position.z = 0;
 			let material = e.pointcloud.material;
