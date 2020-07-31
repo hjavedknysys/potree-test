@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="description" content="">
+	<meta name="author" content="">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+	<title>Potree Viewer</title>
+
+	<link rel="stylesheet" type="text/css" href="../build/potree/potree.css">
+	<link rel="stylesheet" type="text/css" href="../libs/jquery-ui/jquery-ui.min.css">
+	<link rel="stylesheet" type="text/css" href="../libs/openlayers3/ol.css">
+	<link rel="stylesheet" type="text/css" href="../libs/spectrum/spectrum.css">
+	<link rel="stylesheet" type="text/css" href="../libs/jstree/themes/mixed/style.css">
+</head>
+
+<body>
+	<script src="../libs/jquery/jquery-3.1.1.min.js"></script>
+	<script src="../libs/spectrum/spectrum.js"></script>
+	<script src="../libs/jquery-ui/jquery-ui.min.js"></script>
+	<script src="../libs/three.js/build/three.min.js"></script>
+	<script src="../libs/three.js/extra/lines.js"></script>
+	<script src="../libs/other/BinaryHeap.js"></script>
+	<script src="../libs/tween/tween.min.js"></script>
+	<script src="../libs/d3/d3.js"></script>
+	<script src="../libs/proj4/proj4.js"></script>
+	<script src="../libs/openlayers3/ol.js"></script>
+	<script src="../libs/i18next/i18next.js"></script>
+	<script src="../libs/jstree/jstree.js"></script>
+	<script src="/libs/umbrajs-three/dist/umbrajs-three.js"></script>
+	<script src="../build/potree/potree.js"></script>
+	<script src="../libs/plasio/js/laslaz.js"></script>
+	<!-- <script data-consolejs-channel="a5e38b65-8e68-c4d9-9284-1ef5bec17f19" src="https://remotejs.com/agent/agent.js"></script> -->
+
+	
+	<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
+	<!-- INCLUDE SETTINGS HERE -->
+	
+	<div class="potree_container" style="position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; ">
+		<div id="potree_render_area" style="background-image: url('../build/potree/resources/images/background.jpg');"></div>
+		<div id="potree_sidebar_container"> </div>
+	</div>
+	
+	<script>
+
+		/**
+			functions
+		*/
+
+		function getUmbraGlobalVariable(){
+			return {
+				Umbra : null,
+				umbraScene : null,
+				update : ()=>{}
+			};
+		}
+
+		async function initUmbra(viewerObj){
+			console.log("init umbra");
+			let umbra = getUmbraGlobalVariable();
+			umbra.Umbra = await UmbraRuntime.initWithThreeJS(viewerObj.renderer)
+			umbra.umbraScene = umbra.Umbra.createScene(
+			  // 'key=pubk-6f592e67-5aec-479a-ad9e-46ad4e4fe699&project=745415655&model=745415871',
+			  // 'key=pubk-6f592e67-5aec-479a-ad9e-46ad4e4fe699&project=745415655&model=745415871',
+			  // 'key=pubk-a33b4cb8-6643-46a7-a3ff-c768c812b3b6&project=1005906&model=699980469',
+			  'key=pubk-c1e3240e-baab-4a07-aa5b-a402b2c16f91&project=1313199911&model=1597781368'
+			)
+			umbra.update = umbra.Umbra.update;
+			return umbra;
+		}
+
+		async function loadUmbra(viewerObj){
+			if(
+				typeof viewerObj !== "undefined" &&
+				viewerObj !== null &&
+				viewerObj instanceof Potree.Viewer
+			){
+
+				let umbra = await initUmbra(viewerObj);
+				viewerObj.scene.scene.add(umbra.umbraScene);
+				console.log("adding scene",umbra.umbraScene);
+				umbra.umbraScene.scale.x = 1;
+				umbra.umbraScene.scale.y = 1;
+				umbra.umbraScene.scale.z = 1;
+				viewerObj.umbra = umbra;
+			}
+			else{
+				console.error("viewer is not loaded");
+			}
+		}
+	
+		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
+		
+		viewer.setEDLEnabled(false);
+		viewer.setFOV(60);
+		viewer.setPointBudget(1*1000*1000);
+		viewer.setMinNodeSize(0);
+		viewer.loadSettingsFromURL();
+		
+		viewer.setDescription("");
+		
+		viewer.loadGUI(() => {
+			viewer.setLanguage('en');
+			$("#menu_appearance").next().show();
+			viewer.toggleSidebar();
+		});
+		
+		let sphere = new THREE.Mesh(
+			new THREE.SphereGeometry(0.5, 32, 32),
+			new THREE.MeshNormalMaterial()
+		);
+		viewer.scene.scene.add(sphere);
+
+		// Sigeom
+		Potree.loadPointCloud("http://5.9.65.151/mschuetz/potree/resources/pointclouds/archpro/heidentor/cloud.js", "Heidentor", function(e){
+			viewer.scene.addPointCloud(e.pointcloud);
+			e.pointcloud.position.z = 0;
+			let material = e.pointcloud.material;
+			material.size = 1;
+			material.pointSizeType = Potree.PointSizeType.ADAPTIVE;
+			material.uniforms.uShadowColor.value = [0.0, 0, 0];
+			
+			// viewer.scene.view.position.set(-31.007, 18.245, 20.695);
+			// viewer.scene.view.lookAt(-5.288, 2.126, 6.048);
+
+			viewer.scene.view.position.set(-1682.8253349224358,3109.6462080346473,-675.8685781513313);
+			viewer.scene.view.lookAt(0,0,0);
+
+		});
+
+		// Load Umbrajs
+		{
+			loadUmbra(viewer);
+		}
+
+		function pause(){
+			animation.pause();
+			//light.disableShadowUpdates = true;
+		}
+
+		function resume(){
+			animation.resume();
+			//light.disableShadowUpdates = false;
+		}
+		
+	</script>
+	
+	
+  </body>
+</html>
