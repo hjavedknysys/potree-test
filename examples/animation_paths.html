@@ -29,8 +29,6 @@
 	<script src="../libs/jstree/jstree.js"></script>
 	<script src="../build/potree/potree.js"></script>
 	<script src="../libs/plasio/js/laslaz.js"></script>
-	<!-- <script data-consolejs-channel="a5e38b65-8e68-c4d9-9284-1ef5bec17f19" src="https://remotejs.com/agent/agent.js"></script> -->
-
 	
 	<!-- INCLUDE ADDITIONAL DEPENDENCIES HERE -->
 	<!-- INCLUDE SETTINGS HERE -->
@@ -44,7 +42,7 @@
 	
 		window.viewer = new Potree.Viewer(document.getElementById("potree_render_area"));
 		
-		viewer.setEDLEnabled(false);
+		viewer.setEDLEnabled(true);
 		viewer.setFOV(60);
 		viewer.setPointBudget(1*1000*1000);
 		viewer.setMinNodeSize(0);
