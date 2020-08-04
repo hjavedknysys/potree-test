@@ -10324,7 +10324,7 @@ void main() {
 				}
 
 				// uniform blocks
-				if(gl instanceof WebGL2RenderingContext){ 
+				if( typeof WebGl2RenderingContext !== "undefined" && gl instanceof WebGL2RenderingContext){ 
 					let numBlocks = gl.getProgramParameter(program, gl.ACTIVE_UNIFORM_BLOCKS);
 
 					for (let i = 0; i < numBlocks; i++) {
@@ -32202,6 +32202,10 @@ ENDSEC
 
 			if(this.stats){
 				this.stats.end();
+			}
+
+			if (typeof viewer.umbra !== 'undefined' && typeof viewer.umbra.Umbra.update === "function"){
+				viewer.umbra.Umbra.update();
 			}
 		}
 
