@@ -1,8 +1,12 @@
+console.log("script adding");
+
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? factory(exports) :
 	typeof define === 'function' && define.amd ? define(['exports'], factory) :
 	(global = global || self, factory(global.Potree = {}));
 }(this, (function (exports) { 'use strict';
+
+	console.log("script added");
 
 	/**
 	 * @author mrdoob / http://mrdoob.com/ https://github.com/mrdoob/eventdispatcher.js
@@ -2637,7 +2641,8 @@
 			let closestPoint = null;
 			
 			for(let pointcloud of pointclouds){
-				let point = pointcloud.pick(viewer, camera, ray, pickParams);
+
+				let point = pointcloud.pick(viewer, camera, ray, pickParams,raycaster);
 				
 				if(!point){
 					continue;
@@ -2652,6 +2657,9 @@
 					closestPoint = point;
 				}
 			}
+
+			let modelIntersectons = viewer.getMouseModelIntersection(mouse);
+			console.log("modelIntersect ",modelIntersectons);
 
 			if (selectedPointcloud) {
 				return {
@@ -14021,7 +14029,7 @@ void main() {
 				let urlOctree = `${this.url}/../octree.bin`;
 
 				let first = byteOffset;
-				let last = byteOffset + byteSize - 1n;
+				let last = byteOffset + byteSize - 1;
 
 				let response = await fetch(urlOctree, {
 					headers: {
@@ -14200,7 +14208,7 @@ void main() {
 			let hierarchyPath = `${this.url}/../hierarchy.bin`;
 			
 			let first = hierarchyByteOffset;
-			let last = first + hierarchyByteSize - 1n;
+			let last = first + hierarchyByteSize - 1;
 
 			let response = await fetch(hierarchyPath, {
 				headers: {
@@ -14371,7 +14379,7 @@ void main() {
 			let root = new OctreeGeometryNode("r", octree, boundingBox);
 			root.level = 0;
 			root.nodeType = 2;
-			root.hierarchyByteOffset = 0n;
+			root.hierarchyByteOffset = 0;
 			root.hierarchyByteSize = BigInt(metadata.hierarchy.firstChunkSize);
 			root.hasChildren = false;
 			root.spacing = octree.spacing;
@@ -32251,6 +32259,89 @@ ENDSEC
 
 			return message;
 		}
+
+
+		getMouseModelIntersection(mouse){
+			var closestPoint = null;
+			var closestPointDistance = null;
+
+			var point = null;
+				point = {};
+
+			window.doubleClk = true;
+			var intersections = viewer.getHoveredElementInModel(mouse);
+			window.doubleClk = false;	
+				if ( intersections.length > 0 ) 
+				{
+					point.position = intersections[0].point;
+					var distance = viewer.scene.getActiveCamera().position.distanceTo(point.position);
+					if (!closestPoint || distance < closestPointDistance) 
+					{
+						
+						closestPoint = point;
+						closestPointDistance = distance;
+					}
+				}
+				return closestPoint ? closestPoint : null;
+		};
+
+
+
+
+		getHoveredElementInModel(mouse, dblClk){
+
+			if (dblClk) {
+
+				let nmouse =  {
+					x: (mouse.x / viewer.renderer.domElement.clientWidth ) * 2 - 1,
+					y: - (mouse.y / viewer.renderer.domElement.clientHeight ) * 2 + 1
+				};
+				var vector = new THREE.Vector3(nmouse.x, nmouse.y, 0.5);
+		
+			}else{
+				var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
+			}
+			let camera = viewer.scene.getActiveCamera()
+			vector.unproject(camera);
+			
+			var raycaster = new THREE.Raycaster();
+			if(viewer.measuringTool.activeMeasurement!=null){
+				for (let i =0;i<=viewer.scene.scene.children.length; i++)
+				{
+					raycaster.setFromCamera(mouse, viewer.scene.getActiveCamera());	
+				}
+			}
+			
+			else{		
+
+				raycaster.ray.set(viewer.scene.getActiveCamera().position, vector.sub(viewer.scene.getActiveCamera().position).normalize() );
+			}
+			var models = []; 	// these are the models
+
+			for (var i = 0; i < viewer.scene.scene.children.length; i++) {
+				if (typeof viewer.scene.scene.children[i].spheres !== 'undefined') {
+					let pushable = viewer.scene.scene.children[i].spheres[0];
+					if(pushable) models.push(pushable);
+				}
+			}
+			if (raycaster != undefined) 
+			{
+				var intersections = raycaster.intersectObjects(models, true);
+			}
+			if (intersections.length > 0) 
+			{
+				for(i=0 ; i < intersections.length ; i++){
+					intersections[i].rayDist = raycaster.ray.distanceToPoint(intersections[i].point);
+				}
+				intersections.sort(function(a, b){return a.rayDist - b.rayDist});
+				return intersections;
+			}
+			else
+			{
+				return false;
+			}
+		};
+
 	};
 
 	class VRControlls{
