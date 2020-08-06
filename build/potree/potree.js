@@ -32314,8 +32314,8 @@ ENDSEC
 			raycaster.setFromCamera( mouse, viewer.scene.getActiveCamera());
 			let models = [];
 			for(let object3d of viewer.scene.scene.children ){
-				if(typeof object3d.name !== 'undefined' && object3d.name == 'UmbraScene'){
-					models = models.concat(object3d.children);
+				if(typeof object3d.name !== 'undefined' && object3d.name == 'UmbraObject3D'){
+					models = models.concat(object3d.children[0].children);
 				}
 			}
 			var intersects = raycaster.intersectObjects(models);
