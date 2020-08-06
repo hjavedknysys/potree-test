@@ -2636,6 +2636,7 @@ console.log("script adding");
 			let ray = raycaster.ray;
 
 			let selectedPointcloud = null;
+			let selectedModel = null;
 			let closestDistance = Infinity;
 			let closestIntersection = null;
 			let closestPoint = null;
@@ -2658,8 +2659,19 @@ console.log("script adding");
 				}
 			}
 
-			let modelIntersectons = viewer.getMouseModelIntersection(mouse);
-			console.log("modelIntersect ",modelIntersectons);
+			let modelClosestPoint = viewer.getMouseModelIntersection(nmouse);
+
+			if(modelClosestPoint != null){
+				
+				let modelClosestDistance = camera.position.distanceTo(modelClosestPoint.position);
+				if(closestDistance > modelClosestDistance){
+					closestDistance = modelClosestDistance;
+					closestIntersection = modelClosestPoint.position;
+					closestPoint = modelClosestPoint;
+					selectedModel = "some model";					
+				}
+
+			}
 
 			if (selectedPointcloud) {
 				return {
@@ -2668,7 +2680,16 @@ console.log("script adding");
 					pointcloud: selectedPointcloud,
 					point: closestPoint
 				};
-			} else {
+			}
+			else if(selectedModel){
+				return {
+					location: closestIntersection,
+					distance: closestDistance,
+					pointcloud: null,
+					point: closestPoint
+				};
+			} 
+			else {
 				return null;
 			}
 		}
@@ -32289,57 +32310,19 @@ ENDSEC
 
 
 		getHoveredElementInModel(mouse, dblClk){
-
-			if (dblClk) {
-
-				let nmouse =  {
-					x: (mouse.x / viewer.renderer.domElement.clientWidth ) * 2 - 1,
-					y: - (mouse.y / viewer.renderer.domElement.clientHeight ) * 2 + 1
-				};
-				var vector = new THREE.Vector3(nmouse.x, nmouse.y, 0.5);
-		
-			}else{
-				var vector = new THREE.Vector3(mouse.x, mouse.y, 0.5);
-			}
-			let camera = viewer.scene.getActiveCamera()
-			vector.unproject(camera);
-			
 			var raycaster = new THREE.Raycaster();
-			if(viewer.measuringTool.activeMeasurement!=null){
-				for (let i =0;i<=viewer.scene.scene.children.length; i++)
-				{
-					raycaster.setFromCamera(mouse, viewer.scene.getActiveCamera());	
+			raycaster.setFromCamera( mouse, viewer.scene.getActiveCamera());
+			let models = [];
+			for(let object3d of viewer.scene.scene.children ){
+				if(typeof object3d.name !== 'undefined' && object3d.name == 'UmbraScene'){
+					models = models.concat(object3d.children);
 				}
 			}
-			
-			else{		
-
-				raycaster.ray.set(viewer.scene.getActiveCamera().position, vector.sub(viewer.scene.getActiveCamera().position).normalize() );
-			}
-			var models = []; 	// these are the models
-
-			for (var i = 0; i < viewer.scene.scene.children.length; i++) {
-				if (typeof viewer.scene.scene.children[i].spheres !== 'undefined') {
-					let pushable = viewer.scene.scene.children[i].spheres[0];
-					if(pushable) models.push(pushable);
-				}
-			}
-			if (raycaster != undefined) 
-			{
-				var intersections = raycaster.intersectObjects(models, true);
-			}
-			if (intersections.length > 0) 
-			{
-				for(i=0 ; i < intersections.length ; i++){
-					intersections[i].rayDist = raycaster.ray.distanceToPoint(intersections[i].point);
-				}
-				intersections.sort(function(a, b){return a.rayDist - b.rayDist});
-				return intersections;
-			}
-			else
-			{
-				return false;
-			}
+			var intersects = raycaster.intersectObjects(models);
+			// for ( var i = 0; i < intersects.length; i++ ) {
+			// 	intersects[ i ].object.material.color.set( 0xff0000 );
+			// }
+			return intersects;
 		};
 
 	};
